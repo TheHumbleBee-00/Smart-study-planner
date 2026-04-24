@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StudyBloom 🌸 Smart Study Planner</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #fdf8f3;
+      --surface: #ffffff;
+      --surface2: #fef3e8;
+      --accent: #e8723a;
+      --accent2: #f5a66d;
+      --accent3: #6c8ebf;
+      --green: #5aab82;
+      --red: #d95f5f;
+      --yellow: #e8b84b;
+      --text: #1a1208;
+      --text2: #7a6a58;
+      --border: #ede0d0;
+      --shadow: 0 4px 24px rgba(60,30,10,0.08);
+      --radius: 16px;
+    }
+    [data-dark="true"] {
+      --bg: #18140f;
+      --surface: #24201a;
+      --surface2: #2e2820;
+      --accent: #e8723a;
+      --accent2: #c4551f;
+      --text: #f5ede2;
+      --text2: #a89880;
+      --border: #3a3028;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.4s, color 0.4s;
+    }
+
+    /* ── BACKGROUND BLOBS ── */
+    .bg-blobs {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    }
+    .blob {
+      position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.18;
+      animation: blobFloat 10s ease-in-out infinite alternate;
+    }
+    .blob1 { width: 420px; height: 420px; background: #e8723a; top: -100px; right: -80px; animation-delay: 0s; }
+    .blob2 { width: 320px; height: 320px; background: #6c8ebf; bottom: -60px; left: -60px; animation-delay: 3s; }
+    .blob3 { width: 260px; height: 260px; background: #5aab82; top: 40%; left: 30%; animation-delay: 6s; }
+    @keyframes blobFloat { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,20px) scale(1.08); } }
+
+    /* ── LAYOUT ── */
+    .app { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 32px 20px 60px; }
+
+    /* ── HEADER ── */
+    header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    .logo-block h1 {
+      font-family: 'Fraunces', serif; font-size: 2.6rem; font-weight: 700;
+      line-height: 1; color: var(--accent); letter-spacing: -1px;
+    }
+    .logo-block p { font-size: 0.92rem; color: var(--text2); margin-top: 4px; }
+    .header-right { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+    .date-badge {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 50px; padding: 6px 14px; font-size: 0.82rem; color: var(--text2);
+    }
+    .dark-toggle {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 50px; padding: 6px 14px; cursor: pointer;
+      font-size: 0.85rem; color: var(--text); transition: all 0.2s;
+    }
+    .dark-toggle:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px 28px 24px;
+      box-shadow: var(--shadow); margin-bottom: 20px;
+      animation: fadeUp 0.5s ease both;
+    }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    .card-title {
+      font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 600;
+      color: var(--text); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .card-title span { font-size: 1.3rem; }
+
+    /* ── FORM ELEMENTS ── */
+    .row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    input, select, textarea {
+      flex: 1; min-width: 0; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      background: var(--surface2); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,114,58,0.12); }
+    select { cursor: pointer; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 11px 20px; border-radius: 10px; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+    }
+    .btn-primary:hover { background: #d45e28; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(232,114,58,0.35); }
+    .btn-secondary {
+      background: var(--surface2); color: var(--text); border: 1.5px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover { background: #479a6e; transform: translateY(-1px); }
+    .btn-big {
+      width: 100%; padding: 14px; font-size: 1rem; border-radius: 12px;
+      margin-top: 8px; letter-spacing: 0.3px;
+    }
+    .btn:active { transform: translateY(0) scale(0.98); }
+
+    /* ── SUBJECT LIST ── */
+    #subjectList { display: flex; flex-direction: column; gap: 10px; }
+    .subject-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 14px;
+      animation: fadeUp 0.3s ease both;
+    }
+    .subject-item .subj-name {
+      flex: 1; font-weight: 600; font-size: 0.95rem;
+    }
+    .subject-item .subj-chapters { font-size: 0.82rem; color: var(--text2); }
+    .priority-badge {
+      padding: 3px 10px; border-radius: 50px; font-size: 0.78rem; font-weight: 600;
+    }
+    .p-high { background: #fde8e8; color: #c0392b; }
+    .p-medium { background: #fef6e0; color: #b7770d; }
+    .p-low { background: #e8f5ee; color: #1e6b44; }
+    [data-dark="true"] .p-high { background: #4a1c1c; }
+    [data-dark="true"] .p-medium { background: #3d2e0a; }
+    [data-dark="true"] .p-low { background: #0f3022; }
+    .remove-btn {
+      background: none; border: none; cursor: pointer; font-size: 1rem;
+      color: var(--text2); padding: 2px 6px; border-radius: 6px; transition: color 0.2s;
+    }
+    .remove-btn:hover { color: var(--red); }
+
+    /* ── SETTINGS ROW ── */
+    .settings-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    label.field-label { display: block; font-size: 0.8rem; color: var(--text2); margin-bottom: 5px; font-weight: 500; }
+
+    /* ── SCHEDULE OUTPUT ── */
+    #scheduleOutput { display: none; }
+    .schedule-header {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .schedule-header h2 {
+      font-family: 'Fraunces', serif; font-size: 1.5rem; font-weight: 700; color: var(--accent);
+    }
+    .stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 20px; flex: 1; min-width: 120px; text-align: center;
+    }
+    .stat-card .stat-num {
+      font-family: 'Fraunces', serif; font-size: 1.6rem; font-weight: 700; color: var(--accent);
+    }
+    .stat-card .stat-label { font-size: 0.78rem; color: var(--text2); margin-top: 2px; }
+
+    .day-block { margin-bottom: 20px; }
+    .day-label {
+      font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .day-label::after { content:''; flex:1; height:1px; background: var(--border); }
+
+    .task-card {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px; margin-bottom: 8px;
+      transition: all 0.2s; cursor: pointer;
+      animation: fadeUp 0.4s ease both;
+    }
+    .task-card:hover { border-color: var(--accent2); box-shadow: 0 2px 12px rgba(232,114,58,0.1); }
+    .task-card.done { opacity: 0.5; }
+    .task-card.done .task-name { text-decoration: line-through; }
+    .task-check {
+      width: 22px; height: 22px; border-radius: 6px;
+      border: 2px solid var(--border); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; font-size: 0.85rem;
+    }
+    .task-card.done .task-check { background: var(--green); border-color: var(--green); color: #fff; }
+    .task-info { flex: 1; min-width: 0; }
+    .task-name { font-weight: 600; font-size: 0.95rem; }
+    .task-sub { font-size: 0.8rem; color: var(--text2); margin-top: 2px; }
+    .task-time {
+      font-size: 0.82rem; font-weight: 600; color: var(--accent);
+      background: rgba(232,114,58,0.1); padding: 4px 10px; border-radius: 50px; white-space: nowrap;
+    }
+
+    /* ── PROGRESS ── */
+    .progress-section { margin-top: 6px; }
+    .progress-bar-wrap { background: var(--border); border-radius: 50px; height: 8px; overflow: hidden; margin: 6px 0 2px; }
+    .progress-bar-fill { height: 100%; border-radius: 50px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.5s ease; }
+    .progress-label { font-size: 0.8rem; color: var(--text2); }
+
+    /* ── EMPTY ── */
+    .empty-state { text-align: center; padding: 28px 0; color: var(--text2); }
+    .empty-state .emoji { font-size: 2.5rem; margin-bottom: 8px; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--text); color: var(--bg);
+      padding: 12px 24px; border-radius: 50px; font-size: 0.88rem; font-weight: 500;
+      z-index: 999; transition: transform 0.3s ease; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 560px) {
+      .logo-block h1 { font-size: 2rem; }
+      .settings-row { grid-template-columns: 1fr; }
+      header { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-blobs">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-block">
+      <h1>StudyBloom 🌸</h1>
+      <p>Your personal smart study planner</p>
+    </div>
+    <div class="header-right">
+      <div class="date-badge" id="dateBadge"></div>
+      <button class="dark-toggle" id="darkToggle">🌙 Dark</button>
+    </div>
+  </header>
+
+  <!-- ADD SUBJECT CARD -->
+  <div class="card" style="animation-delay:0.05s">
+    <div class="card-title"><span>📚</span> Add Subjects</div>
+
+    <div class="row">
+      <input type="text" id="subjectName" placeholder="Subject name (e.g. Mathematics)" />
+      <input type="number" id="chapterCount" placeholder="No. of chapters" min="1" style="max-width:180px"/>
+    </div>
+    <div class="row">
+      <select id="priority">
+        <option value="high">🔴 High Priority</option>
+        <option value="medium" selected>🟡 Medium Priority</option>
+        <option value="low">🟢 Low Priority</option>
+      </select>
+      <input type="number" id="hoursPerChapter" placeholder="Hours per chapter" min="0.5" step="0.5" style="max-width:200px" value="1"/>
+      <button class="btn btn-primary" onclick="addSubject()">+ Add</button>
+    </div>
+
+    <div id="subjectList"><div class="empty-state"><div class="emoji">📖</div><p>No subjects added yet. Start by adding one above!</p></div></div>
+  </div>
+
+  <!-- SCHEDULE SETTINGS -->
+  <div class="card" style="animation-delay:0.1s">
+    <div class="card-title"><span>⚙️</span> Schedule Settings</div>
+    <div class="settings-row">
+      <div>
+        <label class="field-label">Study start time</label>
+        <input type="time" id="startTime" value="09:00" />
+      </div>
+      <div>
+        <label class="field-label">Daily study hours</label>
+        <input type="number" id="dailyHours" value="6" min="1" max="16" />
+      </div>
+      <div>
+        <label class="field-label">Break after every (min)</label>
+        <input type="number" id="breakEvery" value="50" min="20" max="120" />
+      </div>
+      <div>
+        <label class="field-label">Break duration (min)</label>
+        <input type="number" id="breakDuration" value="10" min="5" max="30" />
+      </div>
+    </div>
+    <button class="btn btn-primary btn-big" onclick="generatePlan()">✨ Generate My Study Plan</button>
+  </div>
+
+  <!-- SCHEDULE OUTPUT -->
+  <div id="scheduleOutput">
+    <div class="card" style="animation-delay:0.05s">
+      <div class="schedule-header">
+        <h2>📅 Your Study Plan</h2>
+        <button class="btn btn-secondary" onclick="clearAll()">🔄 Start Over</button>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row" id="statsRow"></div>
+
+      <!-- PROGRESS -->
+      <div class="progress-section">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:0.85rem;font-weight:600">Overall Progress</span>
+          <span class="progress-label" id="progressLabel">0% done</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- DAILY CARDS -->
+    <div id="dailySchedule"></div>
+  </div>
+
+</div>
+
+<script>
+  // ── STATE ──
+  let subjects = JSON.parse(localStorage.getItem('ssb_subjects') || '[]');
+  let tasks    = JSON.parse(localStorage.getItem('ssb_tasks')    || '[]');
+  let darkMode = localStorage.getItem('ssb_dark') === 'true';
+
+  // ── INIT ──
+  document.getElementById('dateBadge').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',day:'numeric',month:'long'});
+  applyDark();
+  renderSubjects();
+  if (tasks.length) showScheduleFromStorage();
+
+  document.getElementById('darkToggle').addEventListener('click', () => {
+    darkMode = !darkMode;
+    localStorage.setItem('ssb_dark', darkMode);
+    applyDark();
+  });
+
+  function applyDark() {
+    document.body.setAttribute('data-dark', darkMode);
+    document.getElementById('darkToggle').textContent = darkMode ? '☀️ Light' : '🌙 Dark';
+  }
+
+  // ── ADD SUBJECT ──
+  function addSubject() {
+    const name    = document.getElementById('subjectName').value.trim();
+    const chapters= parseInt(document.getElementById('chapterCount').value);
+    const priority= document.getElementById('priority').value;
+    const hpc     = parseFloat(document.getElementById('hoursPerChapter').value) || 1;
+    if (!name) return toast('Please enter a subject name 📖');
+    if (!chapters || chapters < 1) return toast('Enter number of chapters 📝');
+    subjects.push({ id: Date.now(), name, chapters, priority, hpc });
+    localStorage.setItem('ssb_subjects', JSON.stringify(subjects));
+    document.getElementById('subjectName').value = '';
+    document.getElementById('chapterCount').value = '';
+    renderSubjects();
+    toast(`"${name}" added! 🎉`);
+  }
+
+  function removeSubject(id) {
+    subjects = subjects.filter(s => s.id !== id);
+    localStorage.setItem('ssb_subjects', JSON.stringify(subjects));
+    renderSubjects();
+  }
+
+  function renderSubjects() {
+    const el = document.getElementById('subjectList');
+    if (!subjects.length) {
+      el.innerHTML = `<div class="empty-state"><div class="emoji">📖</div><p>No subjects added yet. Start by adding one above!</p></div>`;
+      return;
+    }
+    el.innerHTML = subjects.map(s => `
+      <div class="subject-item">
+        <div class="subj-name">${esc(s.name)}</div>
+        <div class="subj-chapters">${s.chapters} ch · ${s.hpc}h each</div>
+        <span class="priority-badge p-${s.priority}">${s.priority.charAt(0).toUpperCase()+s.priority.slice(1)}</span>
+        <button class="remove-btn" onclick="removeSubject(${s.id})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  // ── GENERATE PLAN ──
+  function generatePlan() {
+    if (!subjects.length) return toast('Add at least one subject first! 📚');
+    const dailyHours   = parseFloat(document.getElementById('dailyHours').value) || 6;
+    const startTime    = document.getElementById('startTime').value || '09:00';
+    const breakEvery   = parseInt(document.getElementById('breakEvery').value) || 50;
+    const breakDur     = parseInt(document.getElementById('breakDuration').value) || 10;
+
+    // Sort by priority
+    const order = { high: 0, medium: 1, low: 2 };
+    const sorted = [...subjects].sort((a,b) => order[a.priority] - order[b.priority]);
+
+    // Build flat chapter list
+    let allChapters = [];
+    for (const s of sorted) {
+      for (let c = 1; c <= s.chapters; c++) {
+        allChapters.push({ subject: s.name, chapter: c, hours: s.hpc, priority: s.priority, done: false, id: `${s.id}-${c}` });
+      }
+    }
+
+    // Distribute chapters into days
+    let days = [];
+    let dayChapters = [], dayUsed = 0, dayIndex = 0;
+    for (const ch of allChapters) {
+      if (dayUsed + ch.hours > dailyHours && dayChapters.length > 0) {
+        days.push({ label: dayLabel(dayIndex), tasks: dayChapters });
+        dayIndex++; dayChapters = []; dayUsed = 0;
+      }
+      dayChapters.push(ch); dayUsed += ch.hours;
+    }
+    if (dayChapters.length) days.push({ label: dayLabel(dayIndex), tasks: dayChapters });
+
+    // Assign times
+    let [sh, sm] = startTime.split(':').map(Number);
+    let minutesCursor = sh * 60 + sm;
+    const studyMinutes = dailyHours * 60;
+    let studiedThisDay = 0;
+
+    tasks = [];
+    for (const day of days) {
+      minutesCursor = sh * 60 + sm; studiedThisDay = 0;
+      for (const ch of day.tasks) {
+        const chMins = ch.hours * 60;
+        // inject break if needed
+        if (studiedThisDay > 0 && studiedThisDay % breakEvery === 0) minutesCursor += breakDur;
+        ch.startStr = fmtTime(minutesCursor);
+        minutesCursor += chMins; studiedThisDay += chMins;
+        ch.endStr = fmtTime(minutesCursor);
+        tasks.push({ ...ch, day: day.label });
+      }
+    }
+
+    localStorage.setItem('ssb_tasks', JSON.stringify(tasks));
+    renderSchedule(days);
+    toast('Study plan generated! 🌸');
+  }
+
+  function showScheduleFromStorage() {
+    const dayMap = {};
+    for (const t of tasks) {
+      if (!dayMap[t.day]) dayMap[t.day] = { label: t.day, tasks: [] };
+      dayMap[t.day].tasks.push(t);
+    }
+    renderSchedule(Object.values(dayMap));
+  }
+
+  function renderSchedule(days) {
+    document.getElementById('scheduleOutput').style.display = 'block';
+
+    // Stats
+    const totalHours = tasks.reduce((s,t) => s + t.hours, 0);
+    const totalChapters = tasks.length;
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat-card"><div class="stat-num">${days.length}</div><div class="stat-label">Study Days</div></div>
+      <div class="stat-card"><div class="stat-num">${totalChapters}</div><div class="stat-label">Total Chapters</div></div>
+      <div class="stat-card"><div class="stat-num">${totalHours.toFixed(1)}h</div><div class="stat-label">Total Hours</div></div>
+    `;
+
+    // Days
+    const container = document.getElementById('dailySchedule');
+    container.innerHTML = '';
+    for (const day of days) {
+      const block = document.createElement('div');
+      block.className = 'card';
+      block.innerHTML = `
+        <div class="day-label">${day.label}</div>
+        ${day.tasks.map(t => `
+          <div class="task-card ${t.done ? 'done' : ''}" id="tc-${t.id}" onclick="toggleTask('${t.id}')">
+            <div class="task-check">${t.done ? '✓' : ''}</div>
+            <div class="task-info">
+              <div class="task-name">${esc(t.subject)} — Chapter ${t.chapter}</div>
+              <div class="task-sub">${t.startStr} – ${t.endStr} &nbsp;·&nbsp; ${priorityIcon(t.priority)} ${t.priority} priority</div>
+            </div>
+            <div class="task-time">${t.hours}h</div>
+          </div>
+        `).join('')}
+      `;
+      container.appendChild(block);
+    }
+    updateProgress();
+    document.getElementById('scheduleOutput').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function toggleTask(id) {
+    const t = tasks.find(t => t.id === id);
+    if (!t) return;
+    t.done = !t.done;
+    localStorage.setItem('ssb_tasks', JSON.stringify(tasks));
+    const card = document.getElementById(`tc-${id}`);
+    card.classList.toggle('done', t.done);
+    card.querySelector('.task-check').textContent = t.done ? '✓' : '';
+    updateProgress();
+    if (t.done) toast('Chapter done! Keep going 💪');
+  }
+
+  function updateProgress() {
+    const total = tasks.length, done = tasks.filter(t => t.done).length;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `${pct}% done (${done}/${total})`;
+  }
+
+  function clearAll() {
+    if (!confirm('Clear everything and start over?')) return;
+    subjects = []; tasks = [];
+    localStorage.removeItem('ssb_subjects');
+    localStorage.removeItem('ssb_tasks');
+    renderSubjects();
+    document.getElementById('scheduleOutput').style.display = 'none';
+    document.getElementById('dailySchedule').innerHTML = '';
+    toast('Cleared! Fresh start 🌱');
+  }
+
+  // ── HELPERS ──
+  function dayLabel(i) {
+    const d = new Date(); d.setDate(d.getDate() + i);
+    return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
+  }
+  function fmtTime(mins) {
+    const h = Math.floor(mins / 60) % 24, m = mins % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+  function priorityIcon(p) { return p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢'; }
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  // Enter key on subject name
+  document.getElementById('subjectName').addEventListener('keydown', e => { if (e.key === 'Enter') addSubject(); });
+</script>
+</body>
+</html>
